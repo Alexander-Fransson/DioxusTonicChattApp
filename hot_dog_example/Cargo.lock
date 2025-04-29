@@ -1992,6 +1992,7 @@ name = "hot_dog_example"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "dioxus-core",
 ]
 
 [[package]]

@@ -1,8 +1,10 @@
 use dioxus::prelude::*;
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
-const MAIN_CSS: Asset = asset!("/assets/main.css");
-const HEADER_SVG: Asset = asset!("/assets/header.svg");
+//mod guide_component;
+//use guide_component::DogApp;
+
+static CSS: Asset = asset!("assets/main.css");
+static DOG: Asset = asset!("assets/dog-3981540_1280.jpg", ImageAssetOptions::new().with_avif()); // this effectivizes the loading of the image, the example was png though
 
 fn main() {
     dioxus::launch(App);
@@ -11,27 +13,45 @@ fn main() {
 #[component]
 fn App() -> Element {
     rsx! {
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS }
-        Hero {}
-
+        document::Stylesheet{href: CSS},
+        Title {},
+        DogView {}
+        
+        
     }
 }
 
 #[component]
-pub fn Hero() -> Element {
-    rsx! {
-        div {
-            id: "hero",
-            img { src: HEADER_SVG, id: "header" }
-            div { id: "links",
-                a { href: "https://dioxuslabs.com/learn/0.6/", "📚 Learn Dioxus" }
-                a { href: "https://dioxuslabs.com/awesome", "🚀 Awesome Dioxus" }
-                a { href: "https://github.com/dioxus-community/", "📡 Community Libraries" }
-                a { href: "https://github.com/DioxusLabs/sdk", "⚙️ Dioxus Development Kit" }
-                a { href: "https://marketplace.visualstudio.com/items?itemName=DioxusLabs.dioxus", "💫 VSCode Extension" }
-                a { href: "https://discord.gg/XgGxMSkvUM", "👋 Community Discord" }
-            }
+fn Title() -> Element {
+    rsx!(
+        div { id: "title",
+            h1 { "HotDog! 🌭" }
         }
-    }
+    )
+}
+
+#[component]
+fn DogView() -> Element {
+
+    let img_src = use_hook(|| { DOG }); // a hook
+    
+    //Hook rules:
+    //* no hooks in loops
+    //* no hooks in conditional
+    //* no hooks in closures
+    //* only in components or other hooks
+    //* hooks must be called in the same order every time
+
+    let skip = move |evt| {};
+    let save = move |evt| {};
+
+    rsx!(
+        div { id: "dogview",
+            img { src: img_src }
+        }
+        div { id: "buttons",
+            button { onclick: skip, id: "skip", "skip" }
+            button { onclick: save, id: "save", "save!" }
+        }
+    )
 }
