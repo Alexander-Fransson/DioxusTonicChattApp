@@ -15,3 +15,6 @@ To install cargo-binstall $ cargo install cargo-binstall $
 
 * make new dx project with $ dx new project_name $ and pick false on all propmts and web on the last
 * Start app with $ dx serve $
+
+
+# I got another idea but ill make a generic chatt app later after 'ive made the hot dog example

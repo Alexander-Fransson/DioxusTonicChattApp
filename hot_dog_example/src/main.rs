@@ -1,10 +1,11 @@
-use dioxus::prelude::*;
+use std::collections::HashMap;
 
-//mod guide_component;
-//use guide_component::DogApp;
+use dioxus::{logger::tracing::info, prelude::*};
+use serde::Deserialize;
 
-static CSS: Asset = asset!("assets/main.css");
-static DOG: Asset = asset!("assets/dog-3981540_1280.jpg", ImageAssetOptions::new().with_avif()); // this effectivizes the loading of the image, the example was png though
+mod components;
+
+use components::BreedPic;
 
 fn main() {
     dioxus::launch(App);
@@ -12,46 +13,49 @@ fn main() {
 
 #[component]
 fn App() -> Element {
+
+    // use signal rerenders component when value changes
+    let mut breed = use_signal(|| "bouvier".to_string());
+
+    // use resource runs inner async function when component mounts
+    let get_breed_list = use_resource(move || async move {
+
+        #[derive(Deserialize, Debug, PartialEq, Clone)]
+        struct BreedsRes {
+            message: HashMap<String, Vec<String>>
+        }
+        
+        let breed_list = reqwest::get("https://dog.ceo/api/breeds/list/all")
+        .await
+        .unwrap()
+        .json::<BreedsRes>()
+        .await;
+
+        let Ok(breeds) = breed_list else {
+            return rsx!("error, fetching breeds");
+        };
+        
+        info!("breeds: {:#?}", breeds);
+
+        rsx!{
+            for cur_breed in breeds.message.keys().take(20).cloned() {
+                button {
+                    onclick: move |_| breed.set(cur_breed.clone()),
+                    "{cur_breed}"
+                }
+            }
+        }
+    });
+
+    let Some(breeds) = get_breed_list() else {
+        return rsx!("loading... :F");
+    };
+
     rsx! {
-        document::Stylesheet{href: CSS},
-        Title {},
-        DogView {}
-        
-        
+        h1 { "select a dog breed : {breed}" },
+        BreedPic { breed }
+        div { width: "400px", {breeds} }
     }
 }
 
-#[component]
-fn Title() -> Element {
-    rsx!(
-        div { id: "title",
-            h1 { "HotDog! 🌭" }
-        }
-    )
-}
 
-#[component]
-fn DogView() -> Element {
-
-    let img_src = use_hook(|| { DOG }); // a hook
-    
-    //Hook rules:
-    //* no hooks in loops
-    //* no hooks in conditional
-    //* no hooks in closures
-    //* only in components or other hooks
-    //* hooks must be called in the same order every time
-
-    let skip = move |evt| {};
-    let save = move |evt| {};
-
-    rsx!(
-        div { id: "dogview",
-            img { src: img_src }
-        }
-        div { id: "buttons",
-            button { onclick: skip, id: "skip", "skip" }
-            button { onclick: save, id: "save", "save!" }
-        }
-    )
-}
